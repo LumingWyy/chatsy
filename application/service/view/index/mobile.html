@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0" />
+    <title>whisper客服移动版</title>
+    <link href="/static/layui/css/layui.css" rel="stylesheet" type="text/css"/>
+    <link href="/static/layui/css/layui.mobile.css" rel="stylesheet"/>
+    <link href="/static/layui/css/modules/layim/mobile/layim.css" rel="stylesheet"/>
+    <style>
+        .no-read{height: 12px;font-size: 12px;color: #FF5722}
+        .already-read{height: 12px;font-size: 12px;color: #c2c2c2}
+    </style>
+</head>
+<body>
+    <div class="layui-m-layer layui-m-layer1" style="z-index: 0">
+        <div class="layui-m-layermain">
+            <div class="layui-m-layersection">
+                <div class="layui-m-layerchild  layui-m-anim--1">
+                    <div class="layui-m-layercont">
+                        <div class="layim-panel">
+                            <div class="layim-title" style="background-color: #36373C;">
+                                <p id="title">{$userName}</p>
+                            </div>
+                            <div class="layui-unselect layim-content">
+                                <div class="layui-layim">
+                                    <div class="layim-tab-content layui-show">
+                                        <ul class="layim-list-friend">
+                                            <li>
+                                                <h5>
+                                                    <i class="layui-icon"></i>
+                                                    <span>訪問者</span>
+                                                </h5>
+                                                <ul class="layui-layim-list layui-show" id="chat-list">
+
+                                                </ul>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <ul class="layui-unselect layui-layim-tab">
+                                    <li title="咨询用户" class="layim-this" style="width: 49%">
+                                        <i class="layui-icon"></i><span>訪問者</span>
+                                        <i class="layim-new" id="LAY_layimNewList"></i>
+                                    </li>
+                                    <li title="退出登录" style="width: 49%" id="loginOut">
+                                        <i class="layui-icon"></i><span>ログアウト</span>
+                                        <i class="layim-new" id="LAY_layimNewMore"></i>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- 聊天框组 -->
+    <div class="layim-panel layui-m-anim-left" id="chat-boxes" style="display: none">
+        <div class="layim-title" style="background-color: #36373C;">
+            <p><i class="layui-icon layim-chat-back" onclick="hideBox()">&#xe603;</i> <span id="customer"></span></p>
+        </div>
+        <div class="layui-unselect layim-content" id="chat-box">
+            <div class="layim-chat layim-chat-friend">
+                <div class="layim-chat-main" id="boxes">
+
+                </div>
+
+                <div class="layim-chat-footer">
+                    <div class="layim-chat-send">
+                        <input type="text" autocomplete="off" id="msg" />
+                        <button class="layim-send layui-disabled" id="send">发送</button>
+                    </div>
+                    <div class="layim-chat-tool">
+                        <span class="layui-icon layim-tool-face" title="选择表情" id="up-face">&#xe60c;</span>
+                        <span class="layui-icon layim-tool-image" title="上传图片" id="up-image">&#xe60d;</span>
+                        <span class="layui-icon layim-tool-image" title="评价" id="praise">&#xe6c6;</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="layui-m-layerchild layim-layer layui-m-anim-scale">
+        <div class="layui-m-layercont" style="display:none;padding:0" id="face-box">
+
+        </div>
+    </div>
+
+    <audio src="/static/voice/default.wav" style="display: none;" id="whisper-index-audio"></audio>
+
+    <script src="/static/common/js/jquery.min.js"></script>
+    <script src="/static/layui/layui.js"></script>
+    <script>
+        var socket = '{$socket}';
+        var seller = '{$seller}';
+        var kefuUser = {
+            uid: 'KF_{$userCode}',
+            name: '{$userName}',
+            avatar: '{$userAvatar}'
+        };
+        var autoFlag = 1;
+        var autoInterval = {$system["auto_link_time"]};
+        var port = {$port};
+    </script>
+    <!--<script src="/static/common/js/whisper.v2.js"></script>
+    <script src="/static/service/js/mwhisper.ser.v2.js"></script>-->
+    <script src="/static/common/js/socket.io.js"></script>
+    <script src="/static/common/js/whisper.io.js"></script>
+    <script src="/static/service/js/mwhisper.ser.io.js"></script>
+</body>
+</html>

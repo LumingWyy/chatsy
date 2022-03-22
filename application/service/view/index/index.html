@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>チャットシステム</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link rel="stylesheet" href="/static/layui/css/layui.css">
+    <link rel="stylesheet" href="/static/service/css/whisper.ser.v2.css">
+    <link rel="stylesheet" href="/static/common/js/jqueryToast/css/toast.style.css">
+    <link href="/static/common/css/jquery.searchableSelect.css" rel="stylesheet" type="text/css">
+
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+    <style>.layui-colla-icon {
+        top: 15px
+    }</style>
+
+</head>
+<body>
+<script>
+
+    // $(function(){
+    //     $('#mySelect').searchableSelect();
+    // });
+
+    $(document).ready(function () {
+        var url = "//wangluming.net/index/test/getCustomer"; //访问后台去数据库查询select的选项,此处需填写后台接口路径
+        $.ajax({
+            type: "get",
+            url: url,
+            success: function (userList) {
+                arr = JSON.parse(userList);
+                //alert(arr);
+                var unitObj = document.getElementById("mySelect"); //页面上的<html:select>元素
+                if (userList != null) { //后台传回来的select选项
+                    for (var i = 0; i < arr.length; i++) {
+                        //遍历后台传回的结果，一项项往select中添加option
+                        unitObj.options.add(new Option(arr[i].customer_name, arr[i].customer_id));
+                    }
+                }
+            },
+            error: function () {
+                J.alert('Error');
+            }
+        })
+    })
+
+    function change() {
+        var objs = document.getElementById("mySelect");
+        var value = objs.options[objs.selectedIndex].value;
+        var text = objs.options[objs.selectedIndex].text;
+        //alert(text+"   "+value);
+        var url = "https://wangluming.net/index/test/apiCustomerLink?userid=" + value + "&username=" + text + "&kefuname={$userName}";
+        //window.location.href = url;
+        if (value != "") {
+            $.ajax({
+                type: "get",
+                url: url,
+                success: function (userList) {
+                }
+            });
+        }
+    }
+</script>
+
+<header class="service-header">
+    <div class="service-log">
+        <img src="/static/common/images/logo.png">
+    </div>
+    <div class="service-title">チャットシステム</div>
+    <div class="service-info">
+        <i class="layui-icon layui-icon-friends"></i>
+        <span class="kefu">{$userName}</span>
+        <i class="layui-icon layui-icon-speaker" style="font-size:20px;cursor: pointer;color:#FFB800" id="fix"></i>
+        <span class="login-out">ログアウト</span>
+    </div>
+</header>
+<div class="layui-row service-content">
+    <div class="layui-col-xs1 service-menu">
+        <div class="kefu-info">
+            <img src="/static/common/images/kefu.png"/>
+            <span class="status out"></span>
+            <span class="user-status">オフライン</span>
+        </div>
+        <div class="now-chat active">
+            <i class="layui-icon layui-icon-dialogue"></i>
+            <span>対応中の訪問者</span>
+        </div>
+
+        <!--<div class="history-chat">
+            <i class="layui-icon layui-icon-list"></i>
+            <span>历史会话</span>
+        </div>-->
+        <div class="pre-link">
+            <i class="layui-icon layui-icon-about"></i>
+            <span>保留中の訪問者</span>
+        </div>
+        <div>登録した訪問者↓
+            <select id="mySelect" size="8" style="width:160px;" name="mySelect" onclick="change()">
+                <option></option>
+            </select></div>
+    </div>
+
+    <div class="layui-col-xs2 visitor-list" id="visitor-list"></div>
+    <div class="layui-col-xs2 visitor-list" id="queue-list" style="display: none"></div>
+
+    <div class="layui-col-xs7 service-chat-box">
+        <div class="chat-container">
+            <div class="layui-row chat-header" id="now-chat-box">
+                {if 1 == $system["relink_status"]}
+                <div style="display: none" id="reLink">
+                    <i class="layui-icon layui-icon-release"></i>
+                    <span>現在のチャットを転送する</span>
+                </div>
+                {/if}
+                <div id="closeChat">
+                    <i class="layui-icon layui-icon-close"></i>
+                    <span>現在のチャットを閉じる</span>
+                </div>
+                <div style="display:none" style="float: right;margin-right: 10px" id="tips">
+                    <span style="font-size: 12px;color:#1E9FFF">如何发送截图？</span>
+                </div>
+            </div>
+            <div class="layui-row chat-header" id="pre-link-box" style="display: none">
+                <div id="takeCare">
+                    <i class="layui-icon layui-icon-dialogue"></i>
+                    <span>訪問者</span>
+                </div>
+            </div>
+            <div class="layui-row chat-body" id="chat-area"></div>
+            <div class="layui-row chat-footer">
+                <div class="text-holder">
+                    <textarea id="textarea" placeholder="入力してください"></textarea>
+                </div>
+                <div class="send-bar">
+                    <div class="tool-box">
+                        <i class="layui-icon layui-icon-face-smile" id="face" title="表情"></i>
+                        <i class="layui-icon layui-icon-picture" id="image" title="図"></i>
+                        <i style="display: none" class="layui-icon" style="font-size: 20px;" id="file" title="文件">&#xe61d;</i>
+                        <i style="display: none" class="layui-icon layui-icon-speaker" id="voice" title="语音"></i>
+                        <i style="display: none" class="layui-icon layui-icon-praise" id="praise" title="評価"></i>
+                        <!--<i class="layui-icon layui-icon-video" id="video" title="视频"></i>-->
+                    </div>
+                    <div class="send-btn-div">
+                        <input type="button" value="発信" class="send-input" id="sendBtn">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="layui-col-xs2 service-bar">
+        <div class="layui-tab" style="margin: 0">
+            <ul class="layui-tab-title">
+                <li class="layui-this">ユーザー情報</li>
+                <li>定型文</li>
+            </ul>
+            <div class="layui-tab-content">
+                <div class="layui-tab-item layui-show">
+                    <blockquote class="layui-elem-quote"
+                                style="height: 10px;line-height: 10px;border-left: 5px solid #1E9FFF;">訪問情報
+                    </blockquote>
+                    <div class="message" style="margin-top: 5px">
+                        <p>
+                            <label>from：</label>
+                            <input disabled="disabled" class="message-input" value="" id="from">
+                        </p>
+                        <p>
+                            <label>IP：</label>
+                            <input disabled="disabled" class="message-input" value="" id="ipAddr">
+                        </p>
+                        <p style="display: none">
+                            <label>地域：</label>
+                            <input disabled="disabled" class="message-input" value="" id="address">
+                        </p>
+                    </div>
+                    <blockquote class="layui-elem-quote"
+                                style="height: 10px;line-height: 10px;border-left: 5px solid #1E9FFF;">名刺
+                    </blockquote>
+                    <div class="message" style="margin-top: 5px">
+                        <p>
+                            <label>名前：</label>
+                            <input class="message-input" value="" id="realName">
+                        </p>
+                        <p>
+                            <label>メール：</label>
+                            <input class="message-input" value="" id="email">
+                        </p>
+                        <p>
+                            <label>携帯：</label>
+                            <input class="message-input" value="" id="phone">
+                        </p>
+                    </div>
+                    <blockquote class="layui-elem-quote"
+                                style="height: 10px;line-height: 10px;border-left: 5px solid #1E9FFF;">メモ欄
+                    </blockquote>
+                    <div class="message" style="margin-top: 5px">
+                        <textarea id="remark" placeholder="内容を入力してください" class="layui-textarea"></textarea>
+                    </div>
+                    <blockquote class="layui-elem-quote"
+                                style="height: 10px;line-height: 10px;border-left: 5px solid #1E9FFF;margin-top: 10px">
+                        その他
+                    </blockquote>
+                    <div class="message" style="margin-top: 5px">
+                        <i class="layui-icon layui-icon-form" style="cursor: pointer" id="joinBlack"> ブロック</i>
+                    </div>
+                </div>
+                <div class="layui-tab-item">
+                    <div class="layui-col-xs12">
+                        <div class="layui-collapse" lay-accordion>
+                            {if !empty($word)}
+                            {foreach name="word" item="vo"}
+                            <div class="layui-colla-item">
+                                <h2 class="layui-colla-title">{$vo['cate_name']}</h2>
+                                <div class="layui-colla-content" style="padding: 0 2px">
+                                    <table class="layui-table">
+                                        <tbody>
+                                        {if !empty($vo['word'])}
+                                        {foreach name="$vo['word']" item="v"}
+                                        <tr>
+                                            <td>{$v['word']}</td>
+                                            <td style="cursor: pointer;color: #01AAED" data-content="{$v['word']}"
+                                                onclick="sendWord(this)"> 発信
+                                            </td>
+                                        </tr>
+                                        {/foreach}
+                                        {/if}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            {/foreach}
+                            {/if}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<audio src="/static/voice/default.wav" style="display: none;" id="whisper-index-audio"></audio>
+
+<!-- 转接提示层 -->
+<div class="layui-form" id="change-box" style="display: none">
+    <div class="layui-form-item" style="margin-top: 20px">
+        <div class="layui-tab layui-tab-brief">
+            <ul class="layui-tab-title" id="change-group-title">
+
+            </ul>
+            <div class="layui-tab-content" id="relink-tab">
+
+            </div>
+        </div>
+    </div>
+</div>
+<!-- 转接提示层-->
+<script src="/static/common/js/jquery.min.js"></script>
+<script src="/static/common/js/jqueryToast/js/toast.script.js"></script>
+<script src="/static/layui/layui.js"></script>
+<!--<script src="/static/common/js/jquery-1.11.1.min.js"></script>-->
+<script src="/static/common/js/jquery.searchableSelect.js"></script>
+<script>
+
+    var socket = '{$socket}';
+    var seller = '{$seller}';
+    var kefuUser = {
+        uid: 'KF_{$userCode}',
+        name: '{$userName}',
+        avatar: '{$userAvatar}'
+    };
+    var autoFlag = {$system["auto_link"]};
+    var autoInterval = {$system["auto_link_time"]};
+    var port = {$port};
+    var customerId = '{$customerId}';
+    var customerName = '{$customerName}';
+
+    var url = "https://wangluming.net/index/test/apiCustomerLink?userid=" + customerId + "&username=" + customerName + "&kefuname={$userName}";
+    window.onload = myfun;
+
+    function myfun() {
+        if (customerId != "") {
+            $.ajax({
+                type: "get",
+                url: url,
+                success: function (userList) {
+                }
+            });
+            destoryCustomerNameSession();
+        } else {
+            if (customerName != "") {
+                alert(customerName + "　をLineに登録していません。");
+                destoryCustomerNameSession();
+                window.opener = null;
+                window.top.open('', '_self', '');
+                //window.close(this);
+            }
+        }
+    }
+
+    function destoryCustomerNameSession() {
+        var sessionDestory = "https://wangluming.net/index/test/sessionDestoryCN";
+        $.ajax({
+            type: "get",
+            url: sessionDestory,
+            success: function (userList) {
+            }
+        });
+    }
+
+
+</script>
+<!--<script src="/static/common/js/whisper.v2.js"></script>
+<script src="/static/service/js/whisper.ser.v2.js"></script>-->
+<script src="/static/common/js/socket.io.js"></script>
+<script src="/static/common/js/whisper.io.js"></script>
+<script src="/static/service/js/whisper.ser.io.js"></script>
+<script src="/static/common/js/voice.js"></script>
+<script src="/static/common/js/recorder.js"></script>
+<script src="/static/common/js/flashTitle.js"></script>
+</body>
+</html>

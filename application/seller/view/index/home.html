@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>whisperホームページ</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <link rel="stylesheet" href="/static/admin/layui/css/layui.css" media="all">
+    <link rel="stylesheet" href="/static/admin/style/admin.css" media="all">
+</head>
+<body>
+
+<div class="layui-fluid">
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-sm6 layui-col-md3">
+            <div class="layui-card">
+                <div class="layui-card-header">
+                    累積受付
+                </div>
+                <div class="layui-card-body layuiadmin-card-list">
+                    <p class="layuiadmin-big-font">{$total_num}</p>
+                </div>
+            </div>
+        </div>
+        <div class="layui-col-sm6 layui-col-md3">
+            <div class="layui-card">
+                <div class="layui-card-header">
+                    今日の受付
+                </div>
+                <div class="layui-card-body layuiadmin-card-list">
+                    <p class="layuiadmin-big-font">{$today_num}</p>
+                </div>
+            </div>
+        </div>
+        <div class="layui-col-sm6 layui-col-md3">
+            <div class="layui-card">
+                <div class="layui-card-header">
+                    オンライン担当者
+                </div>
+                <div class="layui-card-body layuiadmin-card-list">
+                    <p class="layuiadmin-big-font">{$online_kefu}</p>
+                </div>
+            </div>
+        </div>
+        <div style="display: none" class="layui-col-sm6 layui-col-md3">
+            <div class="layui-card">
+                <div class="layui-card-header">
+                    当前在线访客
+                </div>
+                <div class="layui-card-body layuiadmin-card-list">
+
+                    <p class="layuiadmin-big-font">{$customer_num}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="layui-col-sm12">
+            <div class="layui-row layui-col-space15">
+                <div class="layui-col-sm6">
+                    <div class="layui-card">
+                        <div class="layui-card-header">オンライン担当者情報</div>
+                        <div class="layui-card-body">
+                            <table class="layui-table layuiadmin-page-table" lay-skin="line">
+                                <thead>
+                                <tr>
+                                    <th>ユーザー</th>
+                                    <th>最終ログイン時刻</th>
+                                    <th>状態</th>
+                                    <th>受付人数</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {if !empty($kefu)}
+                                {foreach name="kefu" item="vo"}
+                                <tr>
+                                    <td><span class="first">{$vo['kefu_name']}</span></td>
+                                    <td><i class="layui-icon layui-icon-log"> {$vo['last_login_time']}</i></td>
+                                    <td><span>オンライン</span></td>
+                                    <td>0</td>
+                                </tr>
+                                {/foreach}
+                                {/if}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-col-sm6">
+                    <div class="layui-card">
+                        <div class="layui-card-header">使用期限</div>
+                        <div class="layui-card-body">
+                            <table class="layui-table layuiadmin-page-table" lay-skin="line">
+                                <thead>
+                                <tr>
+                                    <th></th>
+                                    <th>期限</th>
+                                    <th>日数</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr>
+                                    <td>有效期</td>
+                                    <td>{$seller['valid_time']}</td>
+                                    <td>{:getValidDays($seller['valid_time'])}</td>
+                                </tr>
+
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="layui-col-sm12">
+            <div class="layui-card">
+                <div class="layui-card-header">
+                    最近15日の状況
+                </div>
+                <div class="layui-card-body">
+                    <div class="layui-row">
+                        <div class="layui-col-sm812">
+                            <div carousel-item id="LAY-index-pagetwo" style="width: 100%;height: 400px">
+                                <div><i class="layui-icon layui-icon-loading1 layadmin-loading"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+
+<script src="/static/admin/layui/layui.js"></script>
+<script>
+    layui.config({
+        base: '/static/admin/' //静态资源所在路径
+    }).extend({
+        index: 'lib/index' //主入口模块
+    }).use(["index", "echarts"], function () {
+
+        var myChart = echarts.init(document.getElementById('LAY-index-pagetwo'), layui.echartsTheme);
+
+        var option = {
+            tooltip: {
+                trigger: 'axis'
+            },
+            xAxis: {
+                type: 'category',
+                data: {$fifteenDays|raw}
+            },
+            yAxis: {
+                type: 'value'
+            },
+            series: [{
+                name: '受付人数',
+                data: {$fifteenNum|raw},
+                type: 'line',
+                smooth: true
+            }]
+        };
+
+        myChart.setOption(option);
+    });
+</script>
+</body>
+</html>

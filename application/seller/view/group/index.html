@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>分组管理</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <link rel="stylesheet" href="/static/admin/layui/css/layui.css" media="all">
+    <link rel="stylesheet" href="/static/admin/style/admin.css" media="all">
+</head>
+<body>
+
+<div class="layui-fluid">
+    <div class="layui-card">
+        <div class="layui-form layui-card-header layuiadmin-card-header-auto">
+            <div class="layui-form-item">
+                <div class="layui-inline">
+                    <label class="layui-form-label">グループ名</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="group_name" placeholder="入力してください" autocomplete="off" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-inline">
+                    <button class="layui-btn layuiadmin-btn-admin" lay-submit lay-filter="LAY-user-front-search">
+                        <i class="layui-icon layui-icon-search layuiadmin-button-btn"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="layui-card-body">
+            <div style="padding-bottom: 10px;">
+                <button class="layui-btn layuiadmin-btn-admin" data-type="add"><i class="layui-icon">&#xe654;</i> 追加</button>
+            </div>
+
+            <table id="LAY-user-table" lay-filter="LAY-user-table"></table>
+            <script type="text/html" id="activeTpl">
+                {{#  if(d.first_service == 1){ }}
+                <button class="layui-btn layui-btn-xs">はい</button>
+                {{#  } else { }}
+                <button class="layui-btn layui-btn-primary layui-btn-xs">いいえ</button>
+                {{#  } }}
+            </script>
+            <script type="text/html" id="buttonTpl">
+                {{#  if(d.group_status == 1){ }}
+                <button class="layui-btn layui-btn-xs">有効しました</button>
+                {{#  } else { }}
+                <button class="layui-btn layui-btn-primary layui-btn-xs">禁じられました</button>
+                {{#  } }}
+            </script>
+            <script type="text/html" id="table-seller-admin">
+                <a class="layui-btn layui-btn-normal layui-btn-xs" lay-event="edit"><i class="layui-icon layui-icon-edit"></i>記入</a>
+                <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del"><i class="layui-icon layui-icon-delete"></i>削除</a>
+            </script>
+        </div>
+    </div>
+</div>
+
+<script src="/static/admin/layui/layui.js"></script>
+<script>
+    layui.config({
+        base: '/static/admin/' //静态资源所在路径
+    }).extend({
+        index: 'lib/index' //主入口模块
+    }).use(['index'], function(){
+        var $ = layui.$;
+
+        var active = {
+
+            add: function(){
+                layer.open({
+                    type: 2
+                    ,title: 'グループ追加'
+                    ,content: "{:url('group/addGroup')}"
+                    ,area: ['60%', '60%']
+                });
+            }
+        };
+
+        $('.layui-btn.layuiadmin-btn-admin').on('click', function(){
+            var type = $(this).data('type');
+            active[type] ? active[type].call(this) : '';
+        });
+    });
+
+    renderTable();
+    // 渲染表格
+    function renderTable() {
+
+        layui.use(['table', 'form'], function () {
+            var $ = layui.$
+                ,form = layui.form
+                ,table = layui.table;
+
+            table.render({
+                elem: "#LAY-user-table",
+                url: "/seller/group/index",
+                cols: [
+                    [{
+                        field: "group_id",
+                        title: "グループid"
+                    }, {
+                        field: "group_name",
+                        title: "グループ名"
+                    }, {
+                        field: "group_users",
+                        title: "グループ人数"
+                    }, {
+                        field: "first_service",
+                        title: "先行グループにしますか",
+                        templet: "#activeTpl",
+                    }, {
+                        field: "group_status",
+                        title: "グループ状態",
+                        templet: "#buttonTpl",
+                    }, {
+                        field: "create_time",
+                        title: "追加時間",
+                    }, {
+                        field: "update_time",
+                        title: "更新時間",
+                    }, {
+                        title: "操作",
+                        align: "center",
+                        fixed: "right",
+                        toolbar: "#table-seller-admin"
+                    }]
+                ],
+                page: !0,
+                limit: 20,
+                height: "full-220",
+                text: {
+                    none: '暂无相关数据'
+                }
+            });
+
+            table.on("tool(LAY-user-table)",
+                function(e) {
+                    if ("del" === e.event) {
+
+                        layer.confirm('削除しますか？', {
+                            title: '　',
+                            icon: 3,
+                            btn: ['はい', 'いいえ']
+                        }, function(){
+
+                            if(1 == e.data.first_service) {
+                                layer.msg('先行グループ削除できません');
+                                return false;
+                            }
+
+                            $.getJSON("/seller/group/delGroup/group_id/" + e.data.group_id, function (res) {
+                                if(0 == res.code) {
+                                    layer.msg(res.msg);
+                                    setTimeout(function () {
+                                        renderTable();
+                                    }, 300);
+                                } else {
+                                    layer.msg(res.msg);
+                                }
+                            });
+
+                        }, function(){
+
+                        });
+                    } else if ("edit" === e.event) {
+
+                        layer.open({
+                            type: 2,
+                            title: "会社情報を記入",
+                            content: "/seller/group/editGroup/group_id/" + e.data.group_id,
+                            area: ['60%', '60%']
+                        });
+                    }
+                });
+
+            // 监听搜索
+            form.on('submit(LAY-user-front-search)', function(data){
+                var field = data.field;
+
+                // 执行重载
+                table.reload('LAY-user-table', {
+                    where: field
+                });
+            });
+        });
+    }
+</script>
+</body>
+</html>

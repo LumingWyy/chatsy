@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>訪問者リスト</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <link rel="stylesheet" href="/static/admin/layui/css/layui.css" media="all">
+    <link rel="stylesheet" href="/static/admin/style/admin.css" media="all">
+</head>
+<body>
+
+<div class="layui-fluid">
+    <div class="layui-card">
+        <div class="layui-form layui-card-header layuiadmin-card-header-auto">
+            <div class="layui-form-item">
+                <div class="layui-inline">
+                    <label class="layui-form-label">期間</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="start_time" placeholder="入力してください" autocomplete="off" class="layui-input" id="start">
+                    </div>
+                </div>
+                <div class="layui-inline">
+                    <label class="layui-form-label">担当者</label>
+                    <div class="layui-input-block">
+                        <select name="kefu_code">
+                            <option value="">担当者を選択してください</option>
+                            {foreach name="kefu" item="vo" key="key"}
+                            <option value="{$key}">{$vo}</option>
+                            {/foreach}
+                        </select>
+                    </div>
+                </div>
+                <div class="layui-inline">
+                    <button class="layui-btn layuiadmin-btn-admin" lay-submit lay-filter="LAY-user-front-search">
+                        <i class="layui-icon layui-icon-search layuiadmin-button-btn"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="layui-card-body">
+            <table id="LAY-user-table" lay-filter="LAY-user-table"></table>
+        </div>
+    </div>
+</div>
+
+<script src="/static/admin/layui/layui.js"></script>
+<script>
+    layui.config({
+        base: '/static/admin/' //静态资源所在路径
+    }).extend({
+        index: 'lib/index' //主入口模块
+    }).use(['index', 'laydate'], function(){
+        var $ = layui.$;
+        var laydate = layui.laydate;
+
+        laydate.render({
+            elem: '#start' //指定元素
+        });
+
+
+        var active = {
+
+        };
+
+        $('.layui-btn.layuiadmin-btn-admin').on('click', function(){
+            var type = $(this).data('type');
+            active[type] ? active[type].call(this) : '';
+        });
+    });
+
+    renderTable();
+    // 渲染表格
+    function renderTable() {
+
+        layui.use(['table', 'form'], function () {
+            var $ = layui.$
+                ,form = layui.form
+                ,table = layui.table;
+
+            table.render({
+                elem: "#LAY-user-table",
+                url: "/seller/customer/index",
+                cols: [
+                    [{
+                        field: "customer_name",
+                        title: "訪問者名"
+                    }, {
+                        field: "customer_ip",
+                        title: "訪問者ip"
+                    },
+/*                        {
+                        field: "location",
+                        title: "地域"
+                    }, */
+                        {
+                        field: "start_time",
+                        title: "受付時間"
+                    },
+                        /*                         {
+                                                field: "end_time",
+                                                title: "終わり時間"
+                                            },
+                                               {
+                                                field: "service_time",
+                                                title: "受付期間"
+                                            }, */
+                        {
+                        field: "kefu_code",
+                        title: "担当者",
+                    }]
+                ],
+                page: !0,
+                limit: 20,
+                height: "full-220",
+                text: {
+                    none: 'データーがありません'
+                }
+            });
+
+            // 监听搜索
+            form.on('submit(LAY-user-front-search)', function(data){
+                var field = data.field;
+
+                // 执行重载
+                table.reload('LAY-user-table', {
+                    where: field
+                });
+            });
+        });
+    }
+</script>
+</body>
+</html>
